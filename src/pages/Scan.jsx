@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
+import { Html5Qrcode } from "html5-qrcode";
 
 export default function Scan({ user }) {
   const navigate = useNavigate();
@@ -12,10 +13,30 @@ export default function Scan({ user }) {
     navigate("/login");
   };
 
-  //  模拟扫码（后面换成真实扫码）
-  const handleFakeScan = () => {
-    setResult(" Attendance recorded successfully");
-  };
+  //  启动扫码
+  useEffect(() => {
+    const qr = new Html5Qrcode("reader");
+
+    qr.start(
+      { facingMode: "environment" }, // 后置摄像头
+      {
+        fps: 10,
+        qrbox: 250,
+      },
+      (decodedText) => {
+        console.log("Scanned:", decodedText);
+
+        setResult("✅ Scanned: " + decodedText);
+
+        qr.stop(); // 扫描成功后停止
+      },
+      () => {}
+    );
+
+    return () => {
+      qr.stop().catch(() => {});
+    };
+  }, []);
 
   return (
     <div
@@ -27,24 +48,25 @@ export default function Scan({ user }) {
         position: "relative",
       }}
     >
-      {/*  遮罩 */}
+      {/* 遮罩（修复点击问题） */}
       <div
         style={{
           position: "absolute",
           width: "100%",
           height: "100%",
           background: "rgba(0,0,0,0.2)",
+          pointerEvents: "none",
         }}
       />
 
       <div style={{ position: "relative", zIndex: 10 }}>
 
-        {/*  顶部导航 */}
+        {/* 顶部导航 */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            padding: "20px 120px",
+            padding: "clamp(20px, 4vw, 40px) 5vw",
             color: "white",
             alignItems: "center",
           }}
@@ -52,7 +74,7 @@ export default function Scan({ user }) {
           <div
             onClick={() => navigate("/")}
             style={{
-              fontSize: "22px",
+              fontSize: "clamp(18px, 4vw, 22px)",
               fontWeight: "bold",
               cursor: "pointer",
             }}
@@ -63,7 +85,8 @@ export default function Scan({ user }) {
           <button
             onClick={handleLogout}
             style={{
-              padding: "10px 18px",
+              padding: "clamp(10px, 2.5vw, 16px) clamp(20px, 6vw, 40px)",
+              fontSize: "clamp(14px, 3vw, 18px)",
               borderRadius: "20px",
               background: "black",
               color: "white",
@@ -75,7 +98,7 @@ export default function Scan({ user }) {
           </button>
         </div>
 
-        {/*  主内容 */}
+        {/* 主内容 */}
         <div
           style={{
             display: "flex",
@@ -87,8 +110,9 @@ export default function Scan({ user }) {
           {/*  卡片 */}
           <div
             style={{
-              width: "520px",
-              padding: "50px",
+              width: "90%",
+              maxWidth: "520px",
+              padding: "clamp(20px, 5vw, 50px)",
               borderRadius: "24px",
               background: "rgba(255,255,255,0.92)",
               backdropFilter: "blur(12px)",
@@ -96,51 +120,47 @@ export default function Scan({ user }) {
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
             }}
           >
-            <h2 style={{ marginBottom: "10px", fontSize: "26px" }}>
+            <h2
+              style={{
+                marginBottom: "10px",
+                fontSize: "clamp(20px, 4vw, 26px)",
+              }}
+            >
               Scan QR Code
             </h2>
 
             {/*  用户信息 */}
-            <p style={{ marginBottom: "20px", color: "#555" }}>
+            <p
+              style={{
+                marginBottom: "20px",
+                color: "#555",
+                fontSize: "clamp(14px, 2.5vw, 18px)",
+              }}
+            >
               Logged in as: <b>{user?.email}</b>
             </p>
 
-            {/*  扫码区域（占位） */}
+            {/*  扫码区域 */}
             <div
+              id="reader"
               style={{
-                width: "260px",
-                height: "260px",
+                width: "100%",
+                maxWidth: "260px",
                 margin: "0 auto 25px",
-                border: "2px dashed #aaa",
                 borderRadius: "16px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                color: "#777",
+                overflow: "hidden",
               }}
-            >
-              Camera Area
-            </div>
-
-            {/*  模拟扫描按钮 */}
-            <button
-              onClick={handleFakeScan}
-              style={{
-                padding: "14px 30px",
-                borderRadius: "20px",
-                background: "black",
-                color: "white",
-                border: "none",
-                cursor: "pointer",
-                marginBottom: "15px",
-              }}
-            >
-              Simulate Scan
-            </button>
+            />
 
             {/*  结果反馈 */}
             {result && (
-              <p style={{ color: "green", fontWeight: "bold" }}>
+              <p
+                style={{
+                  color: "green",
+                  fontWeight: "bold",
+                  fontSize: "clamp(14px, 3vw, 18px)",
+                }}
+              >
                 {result}
               </p>
             )}
