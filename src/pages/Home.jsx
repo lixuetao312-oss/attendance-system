@@ -18,7 +18,8 @@ export default function Home() {
         position: "absolute",
         width: "100%",
         height: "100%",
-        background: "linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.4))"
+        background: "linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.4))",
+        pointerEvents: "none"
         
       }} />
 
@@ -37,7 +38,8 @@ export default function Home() {
           display: "flex",
           justifyContent: "space-between",
           //padding: "20px 120px"
-          pandding:"20px 5vw"
+          padding:"30px 5vw",
+          marginTop: "10px"
         }}>
           <div style={{ fontSize: "24px", fontWeight: "bold" }}>
             Attendance
@@ -102,6 +104,7 @@ export default function Home() {
 
           {/* 副标题 */}
           <p style={{
+            marginTop: "20px",
             //fontSize: "28px",
             fontSize: "clamp(14px, 2.5vw, 28px)",
             maxWidth: "600px",
