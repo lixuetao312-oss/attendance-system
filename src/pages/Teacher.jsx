@@ -63,7 +63,10 @@ export default function Teacher() {
             alignItems: "center",
           }}
         >
-          <div style={{ fontSize: "22px", fontWeight: "bold" }}>
+          <div style={{ 
+                fontSize: "22px", 
+                fontWeight: "bold" 
+               }}>
             Teacher Panel
           </div>
 

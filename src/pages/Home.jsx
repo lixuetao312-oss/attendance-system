@@ -36,7 +36,8 @@ export default function Home() {
         <div style={{
           display: "flex",
           justifyContent: "space-between",
-          padding: "20px 120px"
+          //padding: "20px 120px"
+          pandding:"20px 5vw"
         }}>
           <div style={{ fontSize: "24px", fontWeight: "bold" }}>
             Attendance
@@ -47,8 +48,10 @@ export default function Home() {
               onClick={() => navigate("/login")}
               style={{
                 marginRight: "10px",
-                padding: "16px 40px",
-                fontSize: "18px",
+                //padding: "16px 40px",
+                padding: "clamp(10px, 2vw, 16px) clamp(20px, 5vw, 40px)",
+                //fontSize: "18px",
+                fontSize: "clamp(14px, 3vw, 18px)",
                 borderRadius: "20px",
                 background: "transparent",
                 color: "white",
@@ -61,8 +64,10 @@ export default function Home() {
             <button
               onClick={() => navigate("/login")}
               style={{
-                padding: "16px 40px",
-                fontSize: "18px",
+                //padding: "16px 40px",
+                padding: "clamp(10px, 2vw, 16px) clamp(20px, 5vw, 40px)",
+                //fontSize: "18px",
+                fontSize: "clamp(14px, 3vw, 18px)",
                 borderRadius: "20px",
                 background: "white",
                 color: "black",
@@ -86,7 +91,8 @@ export default function Home() {
 
           {/* 标题 */}
           <h1 style={{
-            fontSize: "72px",
+            //fontSize: "72px",
+            fontSize: "clamp(28px, 6vw, 72px)",
             fontWeight: "bold",
             textAlign: "center",
             marginBottom: "20px"
@@ -96,7 +102,8 @@ export default function Home() {
 
           {/* 副标题 */}
           <p style={{
-            fontSize: "28px",
+            //fontSize: "28px",
+            fontSize: "clamp(14px, 2.5vw, 28px)",
             maxWidth: "600px",
             textAlign: "center",
             marginBottom: "40px"
