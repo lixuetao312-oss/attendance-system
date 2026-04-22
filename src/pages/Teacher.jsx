@@ -7,20 +7,22 @@ export default function Teacher() {
   const [sessionId, setSessionId] = useState(null);
   const navigate = useNavigate();
 
-  // ⭐ mock / real 切换
-  const BASE_URL = "mock"; // 改成后端地址即可
+  //  mock / real 切换
+  const BASE_URL = "mock"; // 改成后端地址
 
-  // 🔐 获取 JWT
+  //  获取 JWT
   const getJWT = async () => {
     const { data } = await supabase.auth.getSession();
+    console.log("JWT:", data.session?.access_token); //debug
     return data.session?.access_token;
   };
 
-  // 🚀 创建 session
+  //  创建 session
   const createSession = async () => {
     if (BASE_URL === "mock") {
       const fakeId = "mock-session-" + Date.now();
       setSessionId(fakeId);
+      console.log("sessionId:", sessionId);   //debug
       return;
     }
 
@@ -45,13 +47,14 @@ export default function Teacher() {
     }
   };
 
-  // 🔄 获取 QR token
+  //  获取 QR token
   const fetchQR = async () => {
     if (!sessionId) return;
 
     if (BASE_URL === "mock") {
       const token = "mock-token-" + Date.now();
       setQrData(token);
+      console.log("QR Token:", qrData);   //debug
       return;
     }
 
@@ -71,12 +74,12 @@ export default function Teacher() {
     }
   };
 
-  // 🧠 初始化 session
+  //  初始化 session
   useEffect(() => {
     createSession();
   }, []);
 
-  // 🔁 自动刷新 QR
+  //  自动刷新 QR
   useEffect(() => {
     if (!sessionId) return;
 
@@ -86,13 +89,13 @@ export default function Teacher() {
     return () => clearInterval(interval);
   }, [sessionId]);
 
-  // 🔐 登出
+  //  登出
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
   };
 
-  // 📤 导出
+  //  导出
   const handleExport = () => {
     alert("Exporting attendance data...");
   };
