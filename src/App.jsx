@@ -53,6 +53,8 @@ export default function App() {
           }
 
           setUser(user);
+          // 成功后跳转
+          window.location.href = "/scan";
           setError("");
         } else {
           setUser(null);

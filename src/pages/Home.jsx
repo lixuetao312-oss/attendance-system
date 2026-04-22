@@ -60,7 +60,7 @@ export default function Home() {
                 border: "1px solid white"
               }}
             >
-              Sign Up
+              Teacher
             </button>
 
             <button
