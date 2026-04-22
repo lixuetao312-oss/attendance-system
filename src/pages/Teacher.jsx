@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import QRCode from "qrcode.react";
 import { supabase } from "../services/supabase";
 
 export default function Teacher() {
-  const [qrData, setQrData] = useState("");
   const navigate = useNavigate();
 
-  //  生成二维码
-  const generateQR = () => {
-    const token = Math.random().toString(36).substring(2, 10);
-    const timestamp = Date.now();
-    setQrData(`${token}-${timestamp}`);
-  };
+  const [sessionId, setSessionId] = useState(null);
+  const [qrToken, setQrToken] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //  自动刷新
-  useEffect(() => {
-    generateQR();
-    const interval = setInterval(generateQR, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  //  mock / real 切换
+  const BASE_URL = "mock"; // "mock" / "https://xxx"
+
+  //  获取 JWT
+  const getJWT = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token;
+  };
 
   //  登出
   const handleLogout = async () => {
@@ -26,144 +26,193 @@ export default function Teacher() {
     navigate("/login");
   };
 
-  //  导出（占位）
-  const handleExport = () => {
-    alert("Exporting attendance data...");
+  //  创建 session
+  const createSession = async () => {
+    setLoading(true);
+    setMessage("");
+
+    try {
+      if (BASE_URL === "mock") {
+        //  mock 模式
+        const fakeId = "mock-session-" + Date.now();
+        setSessionId(fakeId);
+        setMessage(" Mock session created");
+        return;
+      }
+
+      const jwt = await getJWT();
+
+      const res = await fetch(`${BASE_URL}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${jwt}`, 
+        },
+        body: JSON.stringify({
+          name: "Lecture " + new Date().toLocaleString(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      setSessionId(data.sessionId);
+      setMessage(" Session created");
+    } catch (err) {
+      console.error(err);
+      setMessage(" Failed to create session");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //  获取 QR token
+  const fetchQrToken = async () => {
+    if (!sessionId) return;
+
+    try {
+      if (BASE_URL === "mock") {
+        //  mock token（模拟10秒刷新）
+        const fakeToken = "mock-token-" + Date.now();
+        setQrToken(fakeToken);
+        return;
+      }
+
+      const jwt = await getJWT();
+
+      const res = await fetch(`${BASE_URL}/qr/${sessionId}`, {
+        headers: {
+          "Authorization": `Bearer ${jwt}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setQrToken(data.token);
+      }
+    } catch (err) {
+      console.error("QR error:", err);
+    }
+  };
+
+  // 自动刷新二维码（8秒）
+  useEffect(() => {
+    if (!sessionId) return;
+
+    fetchQrToken();
+
+    const interval = setInterval(fetchQrToken, 8000);
+
+    return () => clearInterval(interval);
+  }, [sessionId]);
+
+  //  结束 session
+  const endSession = async () => {
+    try {
+      if (BASE_URL === "mock") {
+        setSessionId(null);
+        setQrToken("");
+        setMessage("Mock session ended");
+        return;
+      }
+
+      const jwt = await getJWT();
+
+      await fetch(`${BASE_URL}/sessions/${sessionId}/end`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${jwt}`,
+        },
+      });
+
+      setSessionId(null);
+      setQrToken("");
+      setMessage(" Session ended");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: "url('/bg.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        position: "relative",
-      }}
-    >
-      {/*  遮罩 */}
-      <div
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          background: "rgba(0,0,0,0.2)",
-        }}
-      />
+    <div style={{
+      minHeight: "100vh",
+      backgroundImage: "url('/bg.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      position: "relative",
+    }}>
+      <div style={{
+        position: "absolute",
+        width: "100%",
+        height: "100%",
+        background: "rgba(0,0,0,0.2)",
+        pointerEvents: "none"
+      }} />
 
       <div style={{ position: "relative", zIndex: 10 }}>
 
-        {/*  顶部导航 */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "20px 120px",
-            color: "white",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ 
-                fontSize: "22px", 
-                fontWeight: "bold" 
-               }}>
-            Teacher Panel
+        {/* 顶部 */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "20px 5vw",
+          color: "white",
+        }}>
+          <div
+            onClick={() => navigate("/")}
+            style={{ fontWeight: "bold", cursor: "pointer" }}
+          >
+            Attendance
           </div>
 
-          <div>
-            <button
-              onClick={handleExport}
-              style={{
-                marginRight: "10px",
-                padding: "10px 18px",
-                borderRadius: "20px",
-                background: "white",
-                color: "black",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Export
-            </button>
-
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: "10px 18px",
-                borderRadius: "20px",
-                background: "black",
-                color: "white",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Logout
-            </button>
-          </div>
+          <button onClick={handleLogout}>
+            Logout
+          </button>
         </div>
 
-        {/*  中间内容 */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "80vh",
-          }}
-        >
-          {/*  卡片 */}
-          <div
-            style={{
-              width: "520px",
-              padding: "50px",
-              borderRadius: "24px",
-              background: "rgba(255,255,255,0.92)",
-              backdropFilter: "blur(12px)",
-              textAlign: "center",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-            }}
-          >
-            <h2 style={{ marginBottom: "30px", fontSize: "26px" }}>
-              Live QR Code
-            </h2>
+        {/* 主体 */}
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh"
+        }}>
+          <div style={{
+            width: "90%",
+            maxWidth: "500px",
+            padding: "40px",
+            borderRadius: "20px",
+            background: "white",
+            textAlign: "center"
+          }}>
 
-            {/*  居中布局 */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {/* QR */}
-              {qrData && (
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${qrData}`}
-                  alt="QR Code"
-                  style={{ marginBottom: "25px" }}
-                />
-              )}
+            <h2>Teacher Panel</h2>
 
-              {/* 按钮 */}
-              <button
-                onClick={generateQR}
-                style={{
-                  padding: "14px 30px",
-                  borderRadius: "20px",
-                  background: "black",
-                  color: "white",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Refresh QR
+            {!sessionId && (
+              <button onClick={createSession} disabled={loading}>
+                {loading ? "Creating..." : "Start Session"}
               </button>
-            </div>
+            )}
 
-            <p style={{ marginTop: "15px", fontSize: "13px", color: "#555" }}>
-              Auto refresh every 10 seconds
-            </p>
+            {qrToken && (
+              <>
+                <QRCode value={qrToken} size={220} />
+
+                <p style={{ marginTop: "10px", color: "#666" }}>
+                  QR refreshes every 8 seconds
+                </p>
+
+                <button onClick={endSession}>
+                  End Session
+                </button>
+              </>
+            )}
+
+            {message && (
+              <p style={{ marginTop: "10px" }}>{message}</p>
+            )}
           </div>
         </div>
       </div>
