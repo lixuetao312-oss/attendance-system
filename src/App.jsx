@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./services/supabase";
-import { useNavigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -15,61 +14,50 @@ function ProtectedRoute({ user, children }) {
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [error, setError] = useState(""); 
+  const [error, setError] = useState("");
 
+  //  统一处理用户（兼容 Microsoft 没有 email）
+  const handleUser = async (rawUser) => {
+    if (!rawUser) {
+      setUser(null);
+      return;
+    }
+
+    // 兼容 Microsoft
+    const email =
+      rawUser.email ||
+      rawUser.user_metadata?.email ||
+      rawUser.user_metadata?.preferred_username;
+
+    if (!email) {
+      console.log(" No email info:", rawUser);
+      setError("Cannot retrieve account info");
+      await supabase.auth.signOut();
+      setUser(null);
+      return;
+    }
+
+    console.log(" Login email:", email);
+
+    // 用 Azure 限制域名
+    setUser({ ...rawUser, email });
+    setError("");
+  };
+
+  // 初始化 + 监听登录
   useEffect(() => {
-    // 初始化 session
-    supabase.auth.getSession().then(async ({ data }) => {
-      const user = data.session?.user;
-
-      if (user) {
-        const domain = user.email.split("@")[1];
-
-        if (!domain.endsWith("elte.hu")) {
-          setError("Only ELTE email accounts are allowed");
-          await supabase.auth.signOut();
-          setUser(null);
-        } else {
-          setUser(user);
-          setError("");
-        }
-      } else {
-        setUser(null);
-      }
+    supabase.auth.getSession().then(({ data }) => {
+      handleUser(data.session?.user);
     });
 
-    // 监听登录状态
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_, session) => {
-        const user = session?.user;
-
-        if (user) {
-          const domain = user.email.split("@")[1];
-
-          if (!domain.endsWith("elte.hu")) {
-            setError("Only ELTE email accounts are allowed");
-            await supabase.auth.signOut();
-            setUser(null);
-            return;
-          }
-
-          setUser(user);
-          setError("");
-        } else {
-          setUser(null);
-        }
+      (_, session) => {
+        handleUser(session?.user);
       }
     );
 
     return () => listener.subscription.unsubscribe();
   }, []);
-
-  // 登录成功跳转
-  useEffect(() => {
-    if (user) {
-      window.location.href = "/scan";
-    }
-  }, [user]);
 
   return (
     <BrowserRouter>
@@ -97,16 +85,19 @@ export default function App() {
 
       <Routes>
 
-        {/* 首页 */}
-        <Route path="/" element={<Home />} />
+        {/* 首页：已登录自动跳 scan */}
+        <Route
+          path="/"
+          element={user ? <Navigate to="/scan" /> : <Home />}
+        />
 
-        {/* 登录 */}
+        {/* 登录页 */}
         <Route path="/login" element={<Login />} />
 
-        {/* 教师 */}
+        {/* 教师页 */}
         <Route path="/teacher" element={<Teacher />} />
 
-        {/* 扫码（受保护） */}
+        {/* 扫码页（受保护） */}
         <Route
           path="/scan"
           element={
@@ -116,7 +107,7 @@ export default function App() {
           }
         />
 
-        {/* 默认跳首页 */}
+        {/* fallback */}
         <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>
