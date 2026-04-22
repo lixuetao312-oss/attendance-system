@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./services/supabase";
+import { useNavigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -53,8 +54,6 @@ export default function App() {
           }
 
           setUser(user);
-          // 成功后跳转
-          window.location.href = "/scan";
           setError("");
         } else {
           setUser(null);
@@ -64,6 +63,13 @@ export default function App() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // 登录成功跳转
+  useEffect(() => {
+    if (user) {
+      window.location.href = "/scan";
+    }
+  }, [user]);
 
   return (
     <BrowserRouter>
