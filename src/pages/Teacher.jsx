@@ -21,8 +21,8 @@ export default function Teacher() {
   const createSession = async () => {
     if (BASE_URL === "mock") {
       const fakeId = "mock-session-" + Date.now();
+      console.log("Generated session:", fakeId); //debug
       setSessionId(fakeId);
-      console.log("sessionId:", sessionId);   //debug
       return;
     }
 
@@ -53,8 +53,8 @@ export default function Teacher() {
 
     if (BASE_URL === "mock") {
       const token = "mock-token-" + Date.now();
+      console.log("QR Token:", token); //debug
       setQrData(token);
-      console.log("QR Token:", qrData);   //debug
       return;
     }
 
