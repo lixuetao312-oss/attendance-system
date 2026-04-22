@@ -8,8 +8,9 @@ export default function Scan({ user }) {
   const [result, setResult] = useState("");
 
   // mock / real 切换
-  const BASE_URL = "mock"; // 改成后端URL即可
-
+  //const BASE_URL = "mock"; // 改成后端URL即可
+  const BASE_URL = "https://test.com"; 
+  
   // 获取 JWT
   const getJWT = async () => {
     const { data } = await supabase.auth.getSession();
