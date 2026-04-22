@@ -10,7 +10,7 @@ export default function Scan({ user }) {
   // mock / real 切换
   //const BASE_URL = "mock"; // 改成后端URL即可
   const BASE_URL = "https://test.com"; 
-  
+
   // 获取 JWT
   const getJWT = async () => {
     const { data } = await supabase.auth.getSession();
@@ -67,9 +67,9 @@ export default function Scan({ user }) {
       console.log("RESPONSE:", data);
 
       if (res.ok && data.success) {
-        setResult("Correct " + data.message);
+        setResult(" Pass " + data.message);
       } else {
-        setResult(" Wrong " + data.message);
+        setResult(" Fail " + data.message);
       }
     } catch (err) {
       console.error(err);
@@ -221,7 +221,7 @@ export default function Scan({ user }) {
             {result && (
               <p
                 style={{
-                  color: result.includes("❌") ? "red" : "green",
+                  color: result.includes("Fail") ? "red" : "green",
                   fontWeight: "bold",
                   fontSize: "clamp(14px, 3vw, 18px)",
                 }}
