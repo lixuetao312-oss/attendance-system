@@ -7,7 +7,6 @@ import Login from "./pages/Login";
 import Scan from "./pages/Scan";
 import Teacher from "./pages/Teacher";
 
-
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" />;
   return children;
@@ -15,15 +14,49 @@ function ProtectedRoute({ user, children }) {
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [error, setError] = useState(""); 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user || null);
+    // 初始化 session
+    supabase.auth.getSession().then(async ({ data }) => {
+      const user = data.session?.user;
+
+      if (user) {
+        const domain = user.email.split("@")[1];
+
+        if (!domain.endsWith("elte.hu")) {
+          setError("Only ELTE email accounts are allowed");
+          await supabase.auth.signOut();
+          setUser(null);
+        } else {
+          setUser(user);
+          setError("");
+        }
+      } else {
+        setUser(null);
+      }
     });
 
+    // 监听登录状态
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_, session) => {
-        setUser(session?.user || null);
+      async (_, session) => {
+        const user = session?.user;
+
+        if (user) {
+          const domain = user.email.split("@")[1];
+
+          if (!domain.endsWith("elte.hu")) {
+            setError("Only ELTE email accounts are allowed");
+            await supabase.auth.signOut();
+            setUser(null);
+            return;
+          }
+
+          setUser(user);
+          setError("");
+        } else {
+          setUser(null);
+        }
       }
     );
 
@@ -32,6 +65,28 @@ export default function App() {
 
   return (
     <BrowserRouter>
+
+      {/* 全局错误提示 */}
+      {error && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(255, 80, 80, 0.95)",
+            color: "white",
+            padding: "12px 20px",
+            borderRadius: "12px",
+            zIndex: 9999,
+            fontSize: "14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <Routes>
 
         {/* 首页 */}
