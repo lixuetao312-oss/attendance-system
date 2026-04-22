@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import QRCode from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../services/supabase";
 
 export default function Teacher() {
@@ -198,7 +198,7 @@ export default function Teacher() {
 
             {qrToken && (
               <>
-                <QRCode value={qrToken} size={220} />
+                <QRCodeCanvas value={qrToken} size={220} />
 
                 <p style={{ marginTop: "10px", color: "#666" }}>
                   QR refreshes every 8 seconds
