@@ -7,18 +7,81 @@ export default function Scan({ user }) {
   const navigate = useNavigate();
   const [result, setResult] = useState("");
 
-  //  登出
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
+  // mock / real 切换
+  const BASE_URL = "mock"; // 改成后端URL即可
+
+  // 获取 JWT
+  const getJWT = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token;
   };
 
-  //  启动扫码
+  // 获取 / 创建 deviceToken
+  const getDeviceToken = () => {
+    let deviceToken = localStorage.getItem("deviceToken");
+
+    if (!deviceToken) {
+      deviceToken = crypto.randomUUID();
+      localStorage.setItem("deviceToken", deviceToken);
+    }
+
+    console.log("deviceToken:", deviceToken);
+    return deviceToken;
+  };
+
+  // 提交签到
+  const submitAttendance = async (tokenFromQR) => {
+    try {
+      console.log(" Scanned token:", tokenFromQR);
+
+      const deviceToken = getDeviceToken();
+
+      // mock 模式
+      if (BASE_URL === "mock") {
+        await new Promise((r) => setTimeout(r, 500));
+        setResult("Attendance recorded (mock)");
+        return;
+      }
+
+      // 获取 JWT
+      const jwt = await getJWT();
+      console.log("JWT:", jwt);
+
+      // 发请求
+      const res = await fetch(`${BASE_URL}/attendance`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({
+          token: tokenFromQR,
+          deviceToken: deviceToken,
+        }),
+      });
+
+      console.log("STATUS:", res.status);
+
+      const data = await res.json();
+      console.log("RESPONSE:", data);
+
+      if (res.ok && data.success) {
+        setResult("Correct " + data.message);
+      } else {
+        setResult(" Wrong " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      setResult(" Network error");
+    }
+  };
+
+  // 启动扫码
   useEffect(() => {
     const qr = new Html5Qrcode("reader");
 
     qr.start(
-      { facingMode: "environment" }, // 后置摄像头
+      { facingMode: "environment" },
       {
         fps: 10,
         qrbox: 250,
@@ -26,9 +89,9 @@ export default function Scan({ user }) {
       (decodedText) => {
         console.log("Scanned:", decodedText);
 
-        setResult("✅ Scanned: " + decodedText);
+        submitAttendance(decodedText);
 
-        qr.stop(); // 扫描成功后停止
+        qr.stop();
       },
       () => {}
     );
@@ -37,6 +100,12 @@ export default function Scan({ user }) {
       qr.stop().catch(() => {});
     };
   }, []);
+
+  // 登出
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   return (
     <div
@@ -48,7 +117,7 @@ export default function Scan({ user }) {
         position: "relative",
       }}
     >
-      {/* 遮罩（修复点击问题） */}
+      {/* 遮罩 */}
       <div
         style={{
           position: "absolute",
@@ -60,7 +129,6 @@ export default function Scan({ user }) {
       />
 
       <div style={{ position: "relative", zIndex: 10 }}>
-
         {/* 顶部导航 */}
         <div
           style={{
@@ -98,7 +166,7 @@ export default function Scan({ user }) {
           </button>
         </div>
 
-        {/* 主内容 */}
+        {/* 主体 */}
         <div
           style={{
             display: "flex",
@@ -107,7 +175,6 @@ export default function Scan({ user }) {
             height: "80vh",
           }}
         >
-          {/*  卡片 */}
           <div
             style={{
               width: "90%",
@@ -129,7 +196,6 @@ export default function Scan({ user }) {
               Scan QR Code
             </h2>
 
-            {/*  用户信息 */}
             <p
               style={{
                 marginBottom: "20px",
@@ -140,7 +206,6 @@ export default function Scan({ user }) {
               Logged in as: <b>{user?.email}</b>
             </p>
 
-            {/*  扫码区域 */}
             <div
               id="reader"
               style={{
@@ -152,11 +217,10 @@ export default function Scan({ user }) {
               }}
             />
 
-            {/*  结果反馈 */}
             {result && (
               <p
                 style={{
-                  color: "green",
+                  color: result.includes("❌") ? "red" : "green",
                   fontWeight: "bold",
                   fontSize: "clamp(14px, 3vw, 18px)",
                 }}
