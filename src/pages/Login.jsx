@@ -8,6 +8,9 @@ export default function Login() {
 
   //  Google 登录
   const handleGoogleLogin = async () => {
+    // clean session
+    await supabase.auth.signOut();
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -18,10 +21,16 @@ export default function Login() {
 
   //  Microsoft 登录
   const handleMicrosoftLogin = async () => {
+    // clean session
+    await supabase.auth.signOut();
+
     await supabase.auth.signInWithOAuth({
       provider: "azure",
       options: {
-        redirectTo: window.location.origin
+        redirectTo: window.location.origin,
+        queryParams: {
+          prompt: "select_account"
+        }
       }
     });
   };
