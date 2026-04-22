@@ -1,42 +1,29 @@
-import { useState } from "react";
-import { supabase } from "../services/supabase";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../services/supabase";
+import { FcGoogle } from "react-icons/fc";
+import { FaMicrosoft } from "react-icons/fa";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    setErrorMsg("");
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  //  Google 登录
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin
+      }
     });
-
-    if (error) {
-      setErrorMsg(error.message);
-    } else {
-      navigate("/scan");
-    }
   };
 
-  const handleRegister = async () => {
-    setErrorMsg("");
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
+  //  Microsoft 登录
+  const handleMicrosoftLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "azure",
+      options: {
+        redirectTo: window.location.origin
+      }
     });
-
-    if (error) {
-      setErrorMsg(error.message);
-    } else {
-      setErrorMsg("Registered! Please login.");
-    }
   };
 
   return (
@@ -49,144 +36,118 @@ export default function Login() {
         position: "relative",
       }}
     >
-      {/* 轻遮罩 */}
+      {/* 遮罩 */}
       <div
         style={{
           position: "absolute",
           width: "100%",
           height: "100%",
           background: "rgba(0,0,0,0.2)",
+          pointerEvents: "none"
         }}
       />
-      {/*  顶部导航 */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          padding: "20px 120px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          color: "white",
-          zIndex: 20,
-        }}
-      >
-        {/* 左侧标题 */}
+
+      <div style={{ position: "relative", zIndex: 10 }}>
+
+        {/* 顶部导航 */}
         <div
-          onClick={() => navigate("/")}
           style={{
-            fontSize: "22px",
-            fontWeight: "bold",
-            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "clamp(20px, 4vw, 40px) 5vw",
+            color: "white",
+            alignItems: "center",
           }}
         >
+          <div
+            onClick={() => navigate("/")}
+            style={{
+              fontSize: "clamp(18px, 4vw, 22px)",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
             Attendance
+          </div>
         </div>
-      </div>
 
-      {/* 登录卡片 */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 10,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+        {/* 登录卡片 */}
         <div
           style={{
-            width: "360px",
-            padding: "40px",
-            borderRadius: "20px",
-            background: "rgba(255,255,255,0.9)",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "80vh",
           }}
         >
-          {/* 标题 */}
-          <h2
+          <div
             style={{
+              width: "90%",
+              maxWidth: "420px",
+              padding: "clamp(25px, 5vw, 50px)",
+              borderRadius: "24px",
+              background: "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(12px)",
               textAlign: "center",
-              marginBottom: "30px",
-              fontSize: "28px",
-              fontWeight: "bold",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
             }}
           >
-            Welcome Back
-          </h2>
+            <h2
+              style={{
+                marginBottom: "10px",
+                fontSize: "clamp(22px, 4vw, 28px)",
+              }}
+            >
+              Sign In
+            </h2>
 
-          {/* 输入框 */}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "15px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "15px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
-          />
-
-          {/* 错误提示 */}
-          {errorMsg && (
-            <p style={{ color: "red", marginBottom: "10px" }}>
-              {errorMsg}
+            <p
+              style={{
+                marginBottom: "30px",
+                color: "#555",
+                fontSize: "clamp(14px, 2.5vw, 16px)",
+              }}
+            >
+              Use your ELTE account to continue
             </p>
-          )}
 
-          {/* 登录按钮 */}
-          <button
-            onClick={handleLogin}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "12px",
-              background: "black",
-              color: "white",
-              fontWeight: "bold",
-              border: "none",
-              cursor: "pointer",
-              marginBottom: "10px",
-            }}
-          >
-            Log In
-          </button>
+            {/* Google 登录 */}
+            <button
+              onClick={handleGoogleLogin}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "12px",
+                border: "1px solid #ddd",
+                background: "white",
+                cursor: "pointer",
+                fontSize: "16px",
+                marginBottom: "15px"
+              }}
+            >
+              <FcGoogle size={20} />
+              Continue with Google
+            </button>
 
-          {/* 注册按钮 */}
-          <button
-            onClick={handleRegister}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "12px",
-              background: "#eee",
-              color: "black",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Register
-          </button>
+            {/* Microsoft 登录 */}
+            <button
+              onClick={handleMicrosoftLogin}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "12px",
+                border: "none",
+                background: "#2F2F2F",
+                color: "white",
+                cursor: "pointer",
+                fontSize: "16px"
+              }}
+            >
+               <FaMicrosoft size={18} />
+              Continue with Microsoft
+            </button>
+
+          </div>
         </div>
       </div>
     </div>
