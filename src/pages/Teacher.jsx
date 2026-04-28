@@ -93,7 +93,7 @@ export default function Teacher() {
   //  登出
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/login");
+    navigate("/", { replace: true });
   };
 
   //  导出
