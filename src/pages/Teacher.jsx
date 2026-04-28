@@ -8,8 +8,8 @@ export default function Teacher() {
   const navigate = useNavigate();
 
   //  mock / real 切换
-  const BASE_URL = "mock"; // 改成后端地址
-  //const BASE_URL = "https://test.com"; 
+  const BASE_URL = "mock"; // debug
+  //const BASE_URL = "http://127.0.0.1:8000"; 
 
   //  获取 JWT
   const getJWT = async () => {

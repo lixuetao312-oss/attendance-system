@@ -5,6 +5,7 @@ import { FaMicrosoft } from "react-icons/fa";
 
 export default function Login() {
   const navigate = useNavigate();
+  //const BASE_URL = "http://127.0.0.1:8000";
 
   //  Google 登录
   const handleGoogleLogin = async () => {
@@ -19,7 +20,7 @@ export default function Login() {
     });
   };
 
-  //  Microsoft 登录
+  //  Microsoft login
   const handleMicrosoftLogin = async () => {
     // clean session
     await supabase.auth.signOut();
