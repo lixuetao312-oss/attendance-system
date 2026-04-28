@@ -47,7 +47,7 @@ export default function Home() {
 
           <div>
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/teacherlogin")}
               style={{
                 marginRight: "10px",
                 //padding: "16px 40px",
