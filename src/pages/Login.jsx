@@ -22,9 +22,6 @@ export default function Login() {
 
   //  Microsoft login
   const handleMicrosoftLogin = async () => {
-    // clean session
-    await supabase.auth.signOut();
-
     await supabase.auth.signInWithOAuth({
       provider: "azure",
       options: {
