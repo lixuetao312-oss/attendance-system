@@ -95,6 +95,9 @@ export default function App() {
         {/* 登录页 */}
         <Route path="/login" element={<Login />} />
 
+        {/* 教师登录页 */}
+        <Route path="/teacher-login" element={<TeacherLogin />} />
+
         {/* 教师页 */}
         <Route path="/teacher" element={<Teacher />} />
 
