@@ -5,50 +5,59 @@ import { Html5Qrcode } from "html5-qrcode";
 
 export default function Scan({ user }) {
   const navigate = useNavigate();
+
   const [result, setResult] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [scanned, setScanned] = useState(false); 
 
-  // mock / real 切换
-  //const BASE_URL = "mock"; // 改成后端URL即可
-  const BASE_URL = "https://test.com"; 
+  const BASE_URL ="mock"  //debug
+  //const BASE_URL = "https://test.com"; 
 
-  // 获取 JWT
   const getJWT = async () => {
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token;
   };
 
-  // 获取 / 创建 deviceToken
+  // device_id
   const getDeviceToken = () => {
-    let deviceToken = localStorage.getItem("deviceToken");
+    let deviceToken = localStorage.getItem("device_id"); // device_id
 
     if (!deviceToken) {
       deviceToken = crypto.randomUUID();
-      localStorage.setItem("deviceToken", deviceToken);
+      localStorage.setItem("device_id", deviceToken);
+      console.log("New device_id:", deviceToken);
+    } else {
+      console.log("Existing device_id:", deviceToken);
     }
 
-    console.log("deviceToken:", deviceToken);
     return deviceToken;
   };
 
   // 提交签到
   const submitAttendance = async (tokenFromQR) => {
+    if (status === "loading") return; // 防重复提交
+
     try {
-      console.log(" Scanned token:", tokenFromQR);
+      setStatus("loading");
+      setResult("Submitting...");
 
       const deviceToken = getDeviceToken();
 
-      // mock 模式
+      console.log("Sending:", {
+        token: tokenFromQR,
+        deviceToken,
+      });
+
+      // mock
       if (BASE_URL === "mock") {
         await new Promise((r) => setTimeout(r, 500));
+        setStatus("success");
         setResult("Attendance recorded (mock)");
         return;
       }
 
-      // 获取 JWT
       const jwt = await getJWT();
-      console.log("JWT:", jwt);
 
-      // 发请求
       const res = await fetch(`${BASE_URL}/attendance`, {
         method: "POST",
         headers: {
@@ -57,39 +66,51 @@ export default function Scan({ user }) {
         },
         body: JSON.stringify({
           token: tokenFromQR,
-          deviceToken: deviceToken,
+          deviceToken,
         }),
       });
 
       console.log("STATUS:", res.status);
 
+      //  403
+      if (res.status === 403) {
+        setStatus("error");
+        setResult(
+          "Error: This device has already been used to record attendance for this session."
+        );
+        return;
+      }
+
       const data = await res.json();
       console.log("RESPONSE:", data);
 
       if (res.ok && data.success) {
-        setResult(" Pass " + data.message);
+        setStatus("success");
+        setResult(data.message || "Attendance recorded");
       } else {
-        setResult(" Fail " + data.message);
+        setStatus("error");
+        setResult(data.message || "Failed");
       }
     } catch (err) {
       console.error(err);
-      setResult(" Network error");
+      setStatus("error");
+      setResult("Network error");
     }
   };
 
-  // 启动扫码
+  // scan
   useEffect(() => {
     const qr = new Html5Qrcode("reader");
 
     qr.start(
       { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250,
-      },
+      { fps: 10, qrbox: 250 },
       (decodedText) => {
+        if (scanned) return;
+
         console.log("Scanned:", decodedText);
 
+        setScanned(true);
         submitAttendance(decodedText);
 
         qr.stop();
@@ -100,12 +121,12 @@ export default function Scan({ user }) {
     return () => {
       qr.stop().catch(() => {});
     };
-  }, []);
+  }, [scanned]);
 
-  // 登出
+  // logout
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/login");
+    navigate("/", { replace: true });
   };
 
   return (
@@ -188,22 +209,9 @@ export default function Scan({ user }) {
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
             }}
           >
-            <h2
-              style={{
-                marginBottom: "10px",
-                fontSize: "clamp(20px, 4vw, 26px)",
-              }}
-            >
-              Scan QR Code
-            </h2>
+            <h2 style={{ marginBottom: "10px" }}>Scan QR Code</h2>
 
-            <p
-              style={{
-                marginBottom: "20px",
-                color: "#555",
-                fontSize: "clamp(14px, 2.5vw, 18px)",
-              }}
-            >
+            <p style={{ marginBottom: "20px", color: "#555" }}>
               Logged in as: <b>{user?.email}</b>
             </p>
 
@@ -221,11 +229,22 @@ export default function Scan({ user }) {
             {result && (
               <p
                 style={{
-                  color: result.includes("Fail") ? "red" : "green",
+                  color:
+                    status === "error"
+                      ? "red"
+                      : status === "success"
+                      ? "green"
+                      : "#555",
                   fontWeight: "bold",
-                  fontSize: "clamp(14px, 3vw, 18px)",
                 }}
               >
+                {status === "loading"
+                  ? "⏳ "
+                  : status === "success"
+                  ? "✅ "
+                  : status === "error"
+                  ? "❌ "
+                  : ""}
                 {result}
               </p>
             )}
