@@ -101,19 +101,20 @@ export default function Scan({ user }) {
   // scan
   useEffect(() => {
     const qr = new Html5Qrcode("reader");
+    let isScanning = true;
 
     qr.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: 250 },
       (decodedText) => {
-        if (scanned) return;
+        if (!isScanning) return;
+        isScanning = false;
 
         console.log("Scanned:", decodedText);
 
-        setScanned(true);
         submitAttendance(decodedText);
 
-        qr.stop();
+        qr.stop().catch(() => {});
       },
       () => {}
     );
@@ -121,7 +122,7 @@ export default function Scan({ user }) {
     return () => {
       qr.stop().catch(() => {});
     };
-  }, [scanned]);
+  }, []);
 
   // logout
   const handleLogout = async () => {
