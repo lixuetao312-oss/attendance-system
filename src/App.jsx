@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Scan from "./pages/Scan";
 import Teacher from "./pages/Teacher";
+import TeacherLogin from "./pages/TeacherLogin";
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" />;
