@@ -120,7 +120,9 @@ export default function Scan({ user }) {
     );
 
     return () => {
-      qr.stop().catch(() => {});
+      if (isScanning) {
+        qr.stop().catch(() => {});
+      };
     };
   }, []);
 
