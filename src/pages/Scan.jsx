@@ -52,7 +52,7 @@ export default function Scan({ user }) {
       if (BASE_URL === "mock") {
         await new Promise((r) => setTimeout(r, 500));
         setStatus("success");
-        setResult("Attendance recorded (mock)");
+        setResult("Attendance recorded");
         return;
       }
 
