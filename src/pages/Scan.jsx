@@ -72,6 +72,14 @@ export default function Scan({ user }) {
 
       console.log("STATUS:", res.status);
 
+      // 401
+      if (res.status === 401) {
+        setStatus("error");
+        setResult("Session expired. Please login again.");
+        navigate("/login", { replace: true });
+        return;
+      }
+
       //  403
       if (res.status === 403) {
         setStatus("error");
@@ -81,15 +89,22 @@ export default function Scan({ user }) {
         return;
       }
 
+      // 400
+      if (res.status === 400) {
+        setStatus("error");
+        setResult(data.message || "Invalid QR code.");
+        return;
+      }
+
       const data = await res.json();
       console.log("RESPONSE:", data);
 
       if (res.ok && data.success) {
         setStatus("success");
-        setResult(data.message || "Attendance recorded");
+        setResult(data.message || "Attendance recorded.");
       } else {
         setStatus("error");
-        setResult(data.message || "Failed");
+        setResult(data.message || "Failed to record attendance.");
       }
     } catch (err) {
       console.error(err);
