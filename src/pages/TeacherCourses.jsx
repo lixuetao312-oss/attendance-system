@@ -93,8 +93,7 @@ export default function TeacherCourses({ user }) {
           Authorization: `Bearer ${jwt}`,
         },
         body: JSON.stringify({
-          courseId: course.id,
-          name: course.name,
+          course_id: course.id,
         }),
       });
 

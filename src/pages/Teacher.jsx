@@ -269,7 +269,6 @@ export default function Teacher() {
                   color: "white",
                   border: "none",
                   cursor: "pointer",
-                  width: "100%",
                 }}
               >
                 End Session
