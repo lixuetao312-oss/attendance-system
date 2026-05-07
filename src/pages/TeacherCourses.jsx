@@ -165,7 +165,7 @@ export default function TeacherCourses({ user }) {
               fontWeight: "bold",
             }}
           >
-            Teacher Courses
+            Teacher Panel
           </div>
 
           <button
