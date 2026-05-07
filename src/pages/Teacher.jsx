@@ -51,7 +51,7 @@ export default function Teacher() {
 
   // end session
   const location = useLocation();
-  const { sessionId, courseName } = location.state || {};
+  const { courseName } = location.state || {};
   const handleEndSession = async () => {
     try {
       // ===== MOCK =====
